@@ -1162,7 +1162,9 @@ void scrollfile(struct ledscreen *disp, FILE* cin) {
 
 		select(fileno(cin)+1,&inset,NULL,NULL,&timeout);
 
-		if ( ! FD_ISSET(fileno(cin),&inset) ) {
+		/* does not work well on stdin/tail -f */
+		/* if ( ! FD_ISSET(fileno(cin),&inset) ) { */
+		if ( (! FD_ISSET(fileno(cin),&inset)) &&  (cin != stdin)) {
 			if (repeat) {
 				/* send_screen twiddles the last update time. just undo it.*/
 				temptime = disp->lastupdate;
