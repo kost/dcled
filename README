@@ -1,0 +1,191 @@
+dcled - userland driver for Dream Cheeky (Dream Link?) USB LED Message Board
+
+Copyright 2009,2010 Jeff Jahr <malakais@pacbell.net> 
+
+This is free software.  G'head, use it all you want.  Because of the use of
+libhid, however, this might now be considered GPL licensed.  I kind of like the
+Artistic License myself.  Anyway, if you are planning to incorporate this code
+into your product or are otherwised concerned about the licensing, have your
+people contact my people and we'll work it out.
+
+Version 1.0 took ~12 hours to write, and was my first foray into usb device
+programming.  This is probably not a real good example of how to do ANYTHING.
+
+Dcled runs on linux, and perhaps other operating systesm.  To use it, you need
+to have the usb hiddev loaded- on my system that seems to be the module named
+'usbhid', and it is loaded by default.  When you plug in the message board, the
+system ought to see it and create an entry in /dev/usb/hiddev* for it.  You can
+check if the device is loaded correctly with this command:
+
+lsusb -d 1d34:0013 -v
+
+That out to output a whole lot of stuff that you probably dont care about-
+unless it outputs nothing.  If it outputs nothing, then you have a problem with
+your usb. Or maybe you have message board with a different vendor and product
+id.
+
+BUILDING IT:
+
+As of dcled version 1.4, you are going to need a copy of the libhid-dev files
+in order to build dcled.  If you are running debian or ubuntu, try running
+'apt-get install libhid-dev' to get the right files installed.
+
+Type 'make'.  That should build an executable called 'dcled'.  If that doesnt
+work, try compling it by hand.  There is an install option in the makefile.  If
+the first make command was successful, run 'make install' as root to copy the
+executable into /usr/local/bin.
+
+As of dcled version 1.8, there is a linux udev rules file that will set the
+permissions of the dcled device such that members of the plugdev group can
+access the hardware without being root.  It seems to work pretty well under
+Ubuntu linux, but it isn't very well tested elsewhere and I can't vouch for how
+will it will work under other OS's.  If you want to give it a shot, type
+'make udev'.  That will copy the file into place and restart the udev
+subsystem.
+
+RUNNING IT:
+
+You are going to need read/write access to the mesage board device in order to
+use dcled.  This means you can either run dcled as root, suid the exe, or
+figure out how to set the device permissions under hotplug if the method
+suggested by the installation instructions didn't work for you.  If you choose
+to run it as root, do try not to hurt anything.  You've been warned.
+
+Usage- ./dcled [opts] [files]
+
+        --brightness  -b   How bright, 0-2
+        --clock       -c   Show the time
+        --clock24h    -C   Show the 24h time
+        --bcdclock    -B   Show the time in binary
+        --debug       -d   Mostly useless
+        --echo        -e   Send copy to stdout
+        --help        -h   Show this message
+        --message     -m   A single line message to scroll
+        --nodev       -n   Don't use the device
+        --preamble    -p   Send a graphic before the text.
+        --repeat      -r   Keep scrolling forever
+        --fastprint   -f   Jump to end of message.
+        --speed       -s   General delay in ms
+        --test        -t   Output a test pattern
+
+Available preamble graphics:
+
+         1 - dots       - A string of random dots
+         2 - static     - Warms up like an old TV
+         3 - squiggle   - A squiggly line
+         4 - clock24    - Shows the 24 hour time
+         5 - clock      - Shows the time
+         6 - spiral     - Draws a spiral
+         7 - fire       - A nice warm hearth
+         8 - bcdclock   - Shows the time in binary
+
+
+I set up dcled so that it works like cat.  If you run dcled with a list of
+files, it will cat each of those files to the message board.  If you dont name
+any files at all, dcled reads from stdin, so that you can use it as a pipe.
+There is also the --message="" option in case you want to send a single line to
+it.
+
+EXAMPLES:
+
+Run a test pattern:
+dcled -t  
+
+Hello World:
+dcled -m 'Hello World!'
+
+Hello World part 2:
+echo 'Hello World!' | dcled
+
+Hell World part 3:
+echo Hello >f1
+echo Hello >f2
+dcled f1 f2
+
+If you want to have dcled run as a clock all the time, try adding using the clock and repeat options.
+
+dcled --clock --repeat
+
+As of dcled 1.6, you can call the preamble type either by number or by name:
+
+dcled -p static -m "Hello World"
+dcled -p 2 -m "Hello World"
+
+To see a demo of all the preamble types, run the test pattern:
+
+dcled --test
+
+Here is how I use it to monitor my game server syslog file:
+
+tail -f syslog | dcled -e -p static
+
+WHAT IS UP WITH BCDCLOCK?
+
+A couple of the guys at work have these LED desk clocks that show the time in a
+form of binary notation called 'BCD'.  That stands for 'binary coded decimal'.
+The clock is showing the time like normal- 2:25:29 for twenty nine seconds
+after two twentyfive for example- but instead of printing it like normal, each
+digit is printed as a column of binary bits.  The 1 bit is at the bottom of the
+screen, with 2, 4, and then 8 on top of it.  Here is an example-
+
+.....................
+.....................
+.....................
+.................O...
+...........O.........
+.....O...O.....O.....
+...........O.....O...
+   0 2   2 5   2 9
+
+Having a BCD clock on your desk is pretty geeky... but I think having a USB
+programmable one that can scroll messages too is even better!
+
+
+WHAT IS UP WITH MOVING TO LIBHID?
+
+I got a message from Sam Dineley about a problem he was having with dcled under
+kernel 2.6.24. It looks like there is a problem with the linux usbhid driver
+that is causing a large number of warnings to be klogged when the display is in
+use. I bumped my kernel to 2.6.26 and am getting the same problem. The display
+still seems to work, although it is very slow, and the error messages fill up
+the logs. Sadly, it seems that the usb bus will eventually lock up too under
+these conditions.
+
+I started looking at what could be going wrong, but this is an area of the
+system that I have no familiarity with at all- this program was my first visit
+into the land of usb programming. This looks to be a problem with the linux
+usbhid driver, but maybe there is something that my program or the messageboard
+hardware is doing to trigger the problem?  Who knows.  As soon as I saw the
+linux hid 'quirks' section in the kernel, I figured that this was an area of
+experimentation that would have to wait for some other rainy afternoon.  I'm in
+California and we are in the middle of a drought, so there it sat.
+
+In the mean time, Michael Wensley was smart enough to make dcled work with
+libhid, and kind enough to show me how he did it.  It seems to work without
+error on my systems, so there we go!  Problem solved.
+
+
+CREDITS:
+
+I used the docs written by Alvin Wong of Dream Link to get the device protocol
+right.  Way to go with releasing hardware specs!  Awesome!
+
+I took the font data from pictures of the X11 "5x7" font.  Its a long story.
+
+Additional contributions made by:
+
+  * Sam Dineley     - Bug reports
+  * Andy Scheller   - Clock code, redrew the 'g', great feedback
+  * Michael Wensley - Application of libhid clue stick
+  * James Bruce     - First to get it to compile under Mac OSX.
+  * Glen Smith      - Wrote the spiral and fire animations.
+  * Raymond         - Initial udev rules file
+  * Thomas Ilnseher - Bug reports
+  * Robert Flick    - Fast Print mode for keeping a still message displayed,
+                      Mac Homebrew build formula.
+
+If you want to contribute to dcled, send me your code diffs!  Be sure to
+specifiy if you DONT want me to include your name or email address in the
+credits.
+
+-jsj

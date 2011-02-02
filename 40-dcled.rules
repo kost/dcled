@@ -1,0 +1,2 @@
+# Set up permissions for root-free dcled message board
+ATTRS{idVendor}=="1d34", ATTRS{idProduct}=="0013", MODE="660",GROUP="plugdev"
