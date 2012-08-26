@@ -26,6 +26,7 @@ OFILES= dcled.o
 all:	dcled
 
 dcled: dcled.o
+	$(CC) dcled.o -o dcled $(LDFLAGS)
 
 # rebuild the ctags
 ctags: $(HFILES) $(CFILES)
