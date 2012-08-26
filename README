@@ -1,6 +1,6 @@
 dcled - userland driver for Dream Cheeky (Dream Link?) USB LED Message Board
 
-Copyright 2009,2010 Jeff Jahr <malakais@pacbell.net> 
+Copyright 2009,2010,2011 Jeff Jahr <malakais@pacbell.net> 
 
 This is free software.  G'head, use it all you want.  Because of the use of
 libhid, however, this might now be considered GPL licensed.  I kind of like the
@@ -141,6 +141,35 @@ Having a BCD clock on your desk is pretty geeky... but I think having a USB
 programmable one that can scroll messages too is even better!
 
 
+WHAT IS UP WITH THE FONT FILE FORMAT?
+
+I was cleaning out my postmaster mail box and saw that Stefan Misch was having
+a hard time mailing me at my usual adress.  Its a good thing that I thought to
+clean up the postmaster box, becuase it turns out he had submitted a patch that
+hard coded three new fonts into dcled!
+
+I felt really bad about having that patch sit around unseen for over a month,
+so to make up for it, I decided it was time to add loadable font files to
+the project.  That, and it was raining.
+
+If you want to add a font of your own, check out one of the .dlf files included
+in the distribution.  The first five lines of the file are the header, and are
+order dependant.  i.e. The "Descirption" data has to appear on the third line
+of the file.
+
+After the header comes the individual character definitions.  Each charater is
+defined on an 8x7 bitmap.  The Size parameter in the header tells how much of
+the 8x7 bitmap is actually used by the font.   The characters don't all have to
+be defined, and they don't have to appear in order in the file.  The first
+two-digit hex number determines which ascii character being defined.  The next
+character is skipped by dcled, it is just there as a human readable hint for
+what the character is.  The next seven numbers are the row data for the
+character bit patterns.
+
+The default location for font files is /usr/local/share/dcled.  Put your .dlf
+file into that location and dcled will try to load it.
+
+
 WHAT IS UP WITH MOVING TO LIBHID?
 
 I got a message from Sam Dineley about a problem he was having with dcled under
@@ -183,6 +212,7 @@ Additional contributions made by:
   * Thomas Ilnseher - Bug reports
   * Robert Flick    - Fast Print mode for keeping a still message displayed,
                       Mac Homebrew build formula.
+  * Stefan Misch    - Created the small, sga, and small_inv fonts
 
 If you want to contribute to dcled, send me your code diffs!  Be sure to
 specifiy if you DONT want me to include your name or email address in the
