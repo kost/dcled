@@ -21,6 +21,11 @@ if(APPLE)
 endif()
 
 
+# Check if lib m is required
+include(CheckLibraryExists)
+CHECK_LIBRARY_EXISTS(m sin "" HAVE_LIB_M)
+
+
 # Add definitions
 add_definitions(-DDCLEDVERSION="${PROJECT_VERSION}")
 add_definitions(-DFONTDIR="${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}")
@@ -33,6 +38,10 @@ target_link_libraries(dcled ${LIBHIDAPI_LIBRARY})
 if(APPLE)
     target_link_libraries(dcled "-framework AppKit")
     target_link_libraries(dcled ${CF} ${IOK})
+endif()
+
+if (HAVE_LIB_M)
+    target_link_libraries(dcled m)
 endif()
 
 
