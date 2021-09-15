@@ -6,17 +6,24 @@
 #  LIBHIDAPI_LIBRARY - The libraries needed to use libserialport
 #  LIBHIDAPI_DEFINITIONS - Compiler switches required for using libserialport
 
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(PC_HIDAPI QUIET hidapi-libusb)
+endif()
+
 # FreeBSD
 FIND_PATH(LIBHIDAPI_INCLUDE_DIR NAMES hidapi.h
         HINTS
+        ${PC_HIDAPI_INCLUDE_DIRS}
         /usr
         /usr/local
         /opt
         PATH_SUFFIXES hidapi
         )
 
-find_library(LIBHIDAPI_LIBRARY NAMES libhidapi.a
+find_library(LIBHIDAPI_LIBRARY NAMES hidapi-libusb hidapi
         HINTS
+        ${PC_HIDAPI_LIBRARY_DIRS}
         /usr
         /usr/local
         /opt)
