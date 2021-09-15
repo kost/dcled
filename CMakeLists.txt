@@ -17,7 +17,7 @@ include_directories(${LIBHIDAPI_INCLUDE_DIR})
 # OS Specific Dependencies
 if(APPLE)
     find_library(CF CoreFoundation)
-    find_library(IOK IOKit)
+    find_library(IOK IOKit AppKit)
 endif()
 
 
@@ -31,6 +31,7 @@ add_executable(dcled
         dcled.c)
 target_link_libraries(dcled ${LIBHIDAPI_LIBRARY})
 if(APPLE)
+    target_link_libraries(dcled "-framework AppKit")
     target_link_libraries(dcled ${CF} ${IOK})
 endif()
 
